@@ -1,4 +1,0 @@
-packages:
-    Jetson.gpio
-    : 
-        must create groups and users

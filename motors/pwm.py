@@ -184,7 +184,7 @@ class Body():
         self.left_side.start_motors()
         
         # do quarter rotation then stop
-        sleep(0.8)
+        sleep(1.2)
         self.stop()
 
     def spin_ccw(self):
@@ -203,7 +203,7 @@ class Body():
         self.left_side.start_motors()
         
         # do quarter rotation then stop
-        sleep(0.7)
+        sleep(1.2)
         self.stop()
 
     def slide_right(self):
