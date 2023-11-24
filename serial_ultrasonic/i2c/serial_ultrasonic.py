@@ -5,11 +5,22 @@ ARDUINO_ADDRESS = 11
 
 # Function to send an integer via I2C
 def send_integer(bus, data):
+    """
+    Send one uint8 through an I2C bus
+    args:
+        (SMBUS::bus) bus: i2c bus object
+        (uint8) data: to send through the bus 
+    """
     bus.write_byte(ARDUINO_ADDRESS, data)
     print(f"Sent: {data}")
 
 # Function to receive an integer via I2C
 def receive_integer(bus):
+    """
+    Recieve one uint8 through an I2C bus
+    args:
+        bus: SMBUS i2c bus object
+    """
     received_data = bus.read_byte(ARDUINO_ADDRESS)
     return received_data
 

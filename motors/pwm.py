@@ -4,22 +4,27 @@ from yaml import safe_load
 from motors.power_controller import PowerController
 from motors import mower_motor
 
-# MOTOR_PINS = {
-#     "RightSide": {
-#         "PWM_PIN": 31,
-#         "direction_pins": {
-#             "back": 23,
-#             "front": 18
-#         }
-#     },
-#     "LeftSide": {
-#         "PWM_PIN": 32,
-#         "direction_pins": {
-#             "back": 23,
-#             "front": 18
-#         }
-#     }
-# }
+# CONFIG FILE LOOKS LIKE THIS:
+# MOTOR_PINS:
+#     RIGHT_SIDE: 
+#         PWM_PIN: 
+#           PIN_NUMBER: 32
+#         DIRECTION_PINS:
+#             BACK: 
+#               PIN_NUMBER: 37
+#             FRONT: 
+#               PIN_NUMBER: 35
+#     LEFT_SIDE: 
+#         PWM_PIN: 
+#           PIN_NUMBER: 33
+#         DIRECTION_PINS:
+#             BACK: 
+#               PIN_NUMBER: 36
+#             FRONT: 
+#               PIN_NUMBER: 38
+# POWER_CONTROL_PIN: 11
+# MOWER_MOTOR_PIN: 22
+
 
 BASELINE_FREQUENCY = 300 # frequency to prevent slipping when starting motors or changing directions
 MOTOR_FORWARD = 0
