@@ -6,5 +6,5 @@ bus = smbus.SMBus(1)
 
 while True:
     ultraonic_sonic = serial_ultrasonic.ultrasonicSensor(bus)
-    distance = ultraonic_sonic.get_ultrasonic_distance()
+    distance = ultraonic_sonic.get_ultrasonic_distance(2)
     print(distance)

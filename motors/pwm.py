@@ -151,9 +151,9 @@ class Body():
         self.right_side.stop_motors()
     
     def change_speed(self, targ_frequency, time_interval_between_increments = 0.15):
-        # gradually increase speed to prevent phase slipping
+        # gradually increase speed to prevent slipping
         while(self.current_frequency != targ_frequency):
-            # decined increment change
+            # decide increment change
             if (self.current_frequency < targ_frequency):
                 self.current_frequency = self.current_frequency + 50
             if (self.current_frequency > targ_frequency):

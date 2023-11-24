@@ -51,13 +51,18 @@ class Controller():
             elif command == "o":
                 body.slide_left()
             
-            
-            
             elif command == "u":
-                body.change_speed(body.right_side.current_frequency + 100)
+                body.change_speed(body.right_side.current_frequency + 200)
 
             elif command == "j":
-                body.change_speed(body.right_side.current_frequency - 100)
+                body.change_speed(body.right_side.current_frequency - 200)
+            
+            elif command == "m":
+                # Toggle mower motor
+                if body.mower_motor.state:
+                    body.tunr_off_mower()
+                else:
+                    body.tunr_on_mower()
 
             
             else:
