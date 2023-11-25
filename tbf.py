@@ -43,7 +43,11 @@ class Controller():
                 body.spin_cw()            
             elif command == "a":
                 body.spin_ccw()
-
+            
+            elif command == "e":
+                body.spin_cw(spin_time=0)            
+            elif command == "q":
+                body.spin_ccw(spin_time=0)
 
             elif command == "p":
                 body.slide_right()
@@ -52,11 +56,27 @@ class Controller():
                 body.slide_left()
             
             elif command == "u":
-                body.change_speed(body.right_side.current_frequency + 200)
+                body.change_speed(body.right_side.current_frequency + 100)
 
             elif command == "j":
-                body.change_speed(body.right_side.current_frequency - 200)
+                body.change_speed(body.right_side.current_frequency - 100)
             
+            elif command == ";":
+                # left side
+                body.sides[0].pwm.ChangeFrequency(body.sides[0].pwm._frequency_hz + 15)
+
+            elif command == ".":
+                # left side
+                body.sides[0].pwm.ChangeFrequency(body.sides[0].pwm._frequency_hz - 15)
+
+            elif command == "'":
+                # right side
+                body.sides[1].pwm.ChangeFrequency(body.sides[1].pwm._frequency_hz + 15)
+
+            elif command == "/":
+                # right side
+                body.sides[1].pwm.ChangeFrequency(body.sides[1].pwm._frequency_hz - 15)
+
             elif command == "m":
                 # Toggle mower motor
                 if body.mower_motor.state:

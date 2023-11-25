@@ -12,7 +12,6 @@ def send_integer(bus, data):
         (uint8) data: to send through the bus 
     """
     bus.write_byte(ARDUINO_ADDRESS, data)
-    print(f"Sent: {data}")
 
 # Function to receive an integer via I2C
 def receive_integer(bus):
@@ -39,9 +38,28 @@ class ultrasonicSensor():
                 1 - forward direction scanning
                 2 - left direction scanning
                 3 - right direction scanning
+        returns:
+            distance in CM to the closest obstacle in the chosen direction
+            (with 15 degrees spread)
         """
         send_integer(self.bus, direction)
-        sleep(0.05)
         distance = receive_integer(self.bus)
         return distance
-        
+    
+    def get_lfr_distances(self):
+        """
+        returns distances from three directions through ultrasonic sensor
+        takes about 20ms to execute 
+        reurns:
+            tuple of distances to the closest obstacle (left, front, right)
+        """
+        distance_front = self.get_ultrasonic_distance(1)
+        sleep(0.01)
+        distance_left = self.get_ultrasonic_distance(2)
+        sleep(0.01)
+        distance_right = self.get_ultrasonic_distance(3)
+
+        # tuple designed by nakul 
+        distances = (distance_left, distance_front, distance_right)
+        return distances
+

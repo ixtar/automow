@@ -26,9 +26,9 @@ from motors import mower_motor
 # MOWER_MOTOR_PIN: 22
 
 
-BASELINE_FREQUENCY = 300 # frequency to prevent slipping when starting motors or changing directions
-MOTOR_FORWARD = 0
-MOTOR_BACKWARD = 1
+BASELINE_FREQUENCY = 350 # frequency to prevent slipping when starting motors or changing directions
+MOTOR_FORWARD = 1
+MOTOR_BACKWARD = 0
 
 class Motor():
     """
@@ -137,8 +137,7 @@ class Body():
                 motor.set_foward()
 
         # start both pwm sides
-        self.right_side.start_motors()
-        self.left_side.start_motors()
+        self.move()
         # reinstate preset speed 
         self.change_speed(self.current_frequency)
         
@@ -155,20 +154,20 @@ class Body():
         self.left_side.stop_motors()
         self.right_side.stop_motors()
     
-    def change_speed(self, targ_frequency, time_interval_between_increments = 0.15):
+    def change_speed(self, targ_frequency, time_interval_between_increments = 0.1):
         # gradually increase speed to prevent slipping
         while(self.current_frequency != targ_frequency):
             # decide increment change
             if (self.current_frequency < targ_frequency):
-                self.current_frequency = self.current_frequency + 50
+                self.current_frequency = self.current_frequency + 25
             if (self.current_frequency > targ_frequency):
-                self.current_frequency = self.current_frequency - 50
+                self.current_frequency = self.current_frequency - 25
             # change pwms frequency
             self.left_side.change_frequency(self.current_frequency)
             self.right_side.change_frequency(self.current_frequency)
             sleep(time_interval_between_increments)
     
-    def spin_cw(self):
+    def spin_cw(self, spin_time = 1.3):
         # operate the wheels to spin automow
         self.stop()
 
@@ -180,14 +179,14 @@ class Body():
         self.right_side.change_frequency(BASELINE_FREQUENCY)
         self.left_side.change_frequency(BASELINE_FREQUENCY)
 
-        self.right_side.start_motors()
-        self.left_side.start_motors()
+        self.move()
         
         # do quarter rotation then stop
-        sleep(1.2)
-        self.stop()
+        if spin_time:
+            sleep(spin_time)
+            self.stop()
 
-    def spin_ccw(self):
+    def spin_ccw(self, spin_time = 1.3):
         # operate the wheels to spin automow
         self.stop()
 
@@ -199,12 +198,12 @@ class Body():
         self.right_side.change_frequency(BASELINE_FREQUENCY)
         self.left_side.change_frequency(BASELINE_FREQUENCY)
 
-        self.right_side.start_motors()
-        self.left_side.start_motors()
+        self.move()
         
-        # do quarter rotation then stop
-        sleep(1.2)
-        self.stop()
+        if spin_time:
+            # do quarter rotation then stop
+            sleep(spin_time)
+            self.stop()
 
     def slide_right(self):
         self.stop()
