@@ -1,3 +1,5 @@
+# script may be executed to remotely control the AutoMow using a keyboard
+
 import sys
 import tty
 import termios
@@ -5,9 +7,9 @@ from motors import pwm
 import RPi.GPIO as jio
 import traceback
 
-def get_first_letter():
+def get_keyboard_input():
+    # get one press from standard input
     print("Press any key: ", end='', flush=True)
-
     fd = sys.stdin.fileno()
     old_settings = termios.tcgetattr(fd)
 
@@ -19,18 +21,27 @@ def get_first_letter():
         termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
 
 class Controller():
+    """
+    remote control class for the automow
+    """
     def run():
         body = pwm.Body()
         # Call the function
         while True:
-            command = get_first_letter()
+            # get user input
+            command = get_keyboard_input()
             
+            # interpret command
             if command == "l":
                 exit()
-
+            
             elif command == "w":
                 body.move_forward()
                 print("moving forward")
+            
+            elif command == "1":
+                body.step_forward()
+                print("stepping forward")
             
             elif command == "s":
                 body.move_backward()
@@ -41,13 +52,15 @@ class Controller():
             
             elif command == "d":
                 body.spin_cw()            
+            
             elif command == "a":
                 body.spin_ccw()
             
             elif command == "e":
-                body.spin_cw(spin_time=0)            
+                body.spin_cw(spin_time=None)            
+            
             elif command == "q":
-                body.spin_ccw(spin_time=0)
+                body.spin_ccw(spin_time=None)
 
             elif command == "p":
                 body.slide_right()
@@ -83,18 +96,17 @@ class Controller():
                     body.tunr_off_mower()
                 else:
                     body.tunr_on_mower()
-
             
             else:
                 print(f"{command} is not a valid input")
 
-try:
-    Controller.run()
+if __name__ == "__main":
+    try:
+        Controller.run()
 
-except Exception as e:
-    print(traceback.format_exc())
+    except Exception as e:
+        print(traceback.format_exc())
 
-
-finally:
-    jio.cleanup()
+    finally:
+        jio.cleanup()
                   

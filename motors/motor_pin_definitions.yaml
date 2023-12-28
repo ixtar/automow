@@ -1,5 +1,3 @@
-# moving forward initially
-
 MOTOR_PINS:
     RIGHT_SIDE: 
         PWM_PIN: 
