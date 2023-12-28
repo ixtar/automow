@@ -1,25 +1,29 @@
-from time import sleep
+# class to communicate with ultrasonic sensor on an arduino through I2C
 
 # I2C address of the Arduino peripheral
 ARDUINO_ADDRESS = 11
 
-# Function to send an integer via I2C
-def send_integer(bus, data):
-    bus.write_byte(ARDUINO_ADDRESS, data)
-    print(f"Sent: {data}")
-
-# Function to receive an integer via I2C
-def receive_integer(bus):
-    received_data = bus.read_byte(ARDUINO_ADDRESS)
-    return received_data
-
 class ultrasonicSensor():
+    """
+    Abstraction layer for the ultrasonic sensor
+        distance is pulled from the arduino through i2c
+    """
     def __init__(self, bus):
         self.bus = bus
-
-    def get_ultrasonic_distance(self):
-        send_integer(self.bus, 1)
-        sleep(0.05)
-        distance = receive_integer(self.bus)
-        return distance
+    
+    def get_lfr_distances(self):
+        """
+        returns distances from three directions through ultrasonic sensor
+        takes about 20ms to execute 
+        reurns:
+            tuple of distances to the closest obstacle (left, front, right)
+        """
+        data = self.bus.read_i2c_block_data(ARDUINO_ADDRESS, 0, 3)
         
+        distance_left = data[0]
+        distance_front = data[1]
+        distance_right = data[2]
+
+        distances = (distance_left, distance_front, distance_right)
+        return distances
+

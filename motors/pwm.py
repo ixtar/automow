@@ -4,26 +4,30 @@ from yaml import safe_load
 from motors.power_controller import PowerController
 from motors import mower_motor
 
-# MOTOR_PINS = {
-#     "RightSide": {
-#         "PWM_PIN": 31,
-#         "direction_pins": {
-#             "back": 23,
-#             "front": 18
-#         }
-#     },
-#     "LeftSide": {
-#         "PWM_PIN": 32,
-#         "direction_pins": {
-#             "back": 23,
-#             "front": 18
-#         }
-#     }
-# }
+# config file looks like this:
+# MOTOR_PINS:
+#     RIGHT_SIDE: 
+#         PWM_PIN: 
+#           PIN_NUMBER: 32
+#         DIRECTION_PINS:
+#             BACK: 
+#               PIN_NUMBER: 37
+#             FRONT: 
+#               PIN_NUMBER: 35
+#     LEFT_SIDE: 
+#         PWM_PIN: 
+#           PIN_NUMBER: 33
+#         DIRECTION_PINS:
+#             BACK: 
+#               PIN_NUMBER: 36
+#             FRONT: 
+#               PIN_NUMBER: 38
+# POWER_CONTROL_PIN: 11
+# MOWER_MOTOR_PIN: 22
 
-BASELINE_FREQUENCY = 300 # frequency to prevent slipping when starting motors or changing directions
-MOTOR_FORWARD = 0
-MOTOR_BACKWARD = 1
+BASELINE_FREQUENCY = 350 # frequency to prevent slipping when starting motors or changing directions
+MOTOR_FORWARD = 1
+MOTOR_BACKWARD = 0
 
 class Motor():
     """
@@ -39,10 +43,6 @@ class Motor():
         jio.setup(direction_pin, jio.OUT, initial = MOTOR_FORWARD)
         self.current_direction_state = MOTOR_FORWARD
         self.direction_pin = direction_pin
-
-    def change_direction(self):    
-        self.current_direction_state ^= self.current_direction_state
-        jio.output(self.direction_pin, self.current_direction_state)
     
     def set_foward(self):
         self.current_direction_state = MOTOR_FORWARD
@@ -54,7 +54,7 @@ class Motor():
 
 class Side():
     """
-    One side of the Automow, controlling front and back motors
+    One side of the AutoMow, controlling front and back motors
     """
     def __init__(self, pwm_frequency, SIDE_PIN_DICT):
         """
@@ -66,7 +66,6 @@ class Side():
 
         # extract direction pins dictionary
         DIRECTION_PINS_DICT = SIDE_PIN_DICT.get("DIRECTION_PINS")
-        
         # extract front direction control pins
         self.front_direction_pin = DIRECTION_PINS_DICT.get("FRONT").get("PIN_NUMBER")
         # extract back direction control pins
@@ -90,10 +89,12 @@ class Side():
         self.motor_power_controller.power_on()
 
     def stop_motors(self):
+        # stop motor movement and cut power to motor control circuits
         self.motor_power_controller.power_off()
         self.pwm.ChangeDutyCycle(0)
 
     def change_frequency(self, frequency):
+        # change side speed
         self.pwm.ChangeFrequency(frequency)
 
 
@@ -106,67 +107,85 @@ class Body():
         with open('motors/motor_pin_definitions.yaml', 'r') as file:
             CONFIG = safe_load(file)
         MOTOR_PINS = CONFIG.get("MOTOR_PINS")
+
+        self.current_frequency = 200
         self.left_side = Side(BASELINE_FREQUENCY, MOTOR_PINS.get("LEFT_SIDE"))
         self.right_side = Side(BASELINE_FREQUENCY, MOTOR_PINS.get("RIGHT_SIDE"))
         self.sides = [self.left_side, self.right_side]
-        self.current_frequency = BASELINE_FREQUENCY
         
         MOWER_MOTOR_PIN = CONFIG.get("MOWER_MOTOR_PIN")
         self.mower_motor = mower_motor.MowerMotor(MOWER_MOTOR_PIN)
 
-    def move(self):
+    def move(self, stop_time = None):
         # launch motor movement
         for side in self.sides:
             side.start_motors()
+        self.change_speed(BASELINE_FREQUENCY)
+        
+        # stop if a stop_time is provided
+        if stop_time:
+            sleep(stop_time)
+            self.stop()
 
     def move_forward(self):
         # always start with baseline to prevent slipping
         self.stop()
         sleep(0.2)
-
-        self.change_speed(BASELINE_FREQUENCY, time_interval_between_increments=0)
-
+        
         # Set all motors for forward operation
         for side in self.sides:
             for motor in side.motors:
                 motor.set_foward()
-
         # start both pwm sides
-        self.right_side.start_motors()
-        self.left_side.start_motors()
-        # reinstate preset speed 
-        self.change_speed(self.current_frequency)
-        
+        self.move()
+
+    def step_forward(self):        
+        # Set all motors for forward operation
+        for side in self.sides:
+            for motor in side.motors:
+                motor.set_foward()
+        # start both pwm sides one grid step
+        self.move(stop_time = 0.45)
+
+
     def move_backward(self):
         # reverse motor direction
-        self.stop()
-        sleep(0.2) # delay to let the motors go to rest
         for side in self.sides:
             for motor in side.motors:
                 motor.set_backward()
-            side.start_motors()
+        self.move()
     
     def stop(self):
+        #stop automow body
+        # change speed to slowly stop
+        self.change_speed(150)
+        # stop both motor sides
         self.left_side.stop_motors()
         self.right_side.stop_motors()
     
-    def change_speed(self, targ_frequency, time_interval_between_increments = 0.15):
-        # gradually increase speed to prevent phase slipping
+    def change_speed(self, targ_frequency, time_interval_between_increments = 0.1, frequency_increment = 25):
+        """
+        Change automow body speed
+        Args
+            targ_frequency: target speed frequency
+            time_interval_between_increments: sleep time between frequency increments
+            frequency_increment: frequency step between sleeps
+        """
+        # gradually change speed to prevent slipping
         while(self.current_frequency != targ_frequency):
-            # decined increment change
+            # decide increment change
             if (self.current_frequency < targ_frequency):
-                self.current_frequency = self.current_frequency + 50
+                self.current_frequency = self.current_frequency + frequency_increment
             if (self.current_frequency > targ_frequency):
-                self.current_frequency = self.current_frequency - 50
+                self.current_frequency = self.current_frequency - frequency_increment
             # change pwms frequency
             self.left_side.change_frequency(self.current_frequency)
-            self.right_side.change_frequency(self.current_frequency)
+            # self.right_side.change_frequency(self.current_frequency)
+            self.right_side.change_frequency(self.current_frequency + 2)
             sleep(time_interval_between_increments)
     
-    def spin_cw(self):
-        # operate the wheels to spin automow
-        self.stop()
-
+    def spin_cw(self, spin_time = 2.4):
+        # operate the wheels to spin automow clockwise
         for motor in self.left_side.motors:
             motor.set_foward()
         for motor in self.right_side.motors:
@@ -174,18 +193,11 @@ class Body():
 
         self.right_side.change_frequency(BASELINE_FREQUENCY)
         self.left_side.change_frequency(BASELINE_FREQUENCY)
+        # spin 90 degrees
+        self.move(spin_time)
 
-        self.right_side.start_motors()
-        self.left_side.start_motors()
-        
-        # do quarter rotation then stop
-        sleep(0.8)
-        self.stop()
-
-    def spin_ccw(self):
+    def spin_ccw(self, spin_time = 2.4):
         # operate the wheels to spin automow
-        self.stop()
-
         for motor in self.right_side.motors:
             motor.set_foward()
         for motor in self.left_side.motors:
@@ -193,15 +205,11 @@ class Body():
 
         self.right_side.change_frequency(BASELINE_FREQUENCY)
         self.left_side.change_frequency(BASELINE_FREQUENCY)
-
-        self.right_side.start_motors()
-        self.left_side.start_motors()
-        
-        # do quarter rotation then stop
-        sleep(0.7)
-        self.stop()
+        # spin 90 degrees
+        self.move(spin_time)
 
     def slide_right(self):
+        # use butterfly wheel functionality to slide
         self.stop()
         self.left_side.front_motor.set_foward()
         self.left_side.back_motor.set_backward()
@@ -211,6 +219,7 @@ class Body():
         self.move()
 
     def slide_left(self):
+        # use butterfly wheel functionality to slide
         self.stop()
         self.right_side.front_motor.set_foward()
         self.right_side.back_motor.set_backward()
@@ -220,9 +229,11 @@ class Body():
         self.move()
     
     def tunr_on_mower(self):
+        # turn on the blade motor
         self.mower_motor.turn_on()
 
     def tunr_off_mower(self):
+        # turn off the blade motor
         self.mower_motor.turn_off()
 
     def clean_up(self):

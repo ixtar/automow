@@ -1,5 +1,3 @@
-# moving forward initially
-
 MOTOR_PINS:
     RIGHT_SIDE: 
         PWM_PIN: 
@@ -7,19 +5,15 @@ MOTOR_PINS:
         DIRECTION_PINS:
             BACK: 
               PIN_NUMBER: 37
-              FORWARD_STATE: 0
             FRONT: 
               PIN_NUMBER: 35
-              FORWARD_STATE: 0    
     LEFT_SIDE: 
         PWM_PIN: 
           PIN_NUMBER: 33
         DIRECTION_PINS:
             BACK: 
               PIN_NUMBER: 36
-              FORWARD_STATE: 0
             FRONT: 
               PIN_NUMBER: 38
-              FORWARD_STATE: 0
 POWER_CONTROL_PIN: 11
 MOWER_MOTOR_PIN: 22

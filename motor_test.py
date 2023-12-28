@@ -1,8 +1,7 @@
 from motors import pwm
 from time import sleep
 
-
-def main():
+def test():
     try:
         # motor initialize body
         body = pwm.Body()
@@ -18,4 +17,4 @@ def main():
 
 if __name__ == "__main__":
     while True:
-        main()
+        test()
