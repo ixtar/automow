@@ -9,4 +9,4 @@ motors directory
 use pwm.py to control body movement through the body class.
 
 use serial_ultrasonic.py in serial_ultrasonic/i2c
-to control poll ultrasonic sensor through an i2c connected arduino
+to poll ultrasonic sensor through an i2c connected arduino
